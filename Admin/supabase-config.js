@@ -11,7 +11,7 @@
 // ============================================================
 
 window.GARIMPO_SUPABASE = {
-  url: "https://nzkcgejzlxmntjfffai.supabase.co",
+  url: "https://nzkcgejlzxlmntjfffai.supabase.co",
 
   // Cole aqui a chave que começa com sb_publishable_
   publishableKey: "sb_publishable_sVxfeNWjGUYcdeW6O4pMyg_JIRLJxIV"
