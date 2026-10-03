@@ -1,183 +1,148 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Central do Garimpo — Garimpo do Giva</title>
-  <meta name="robots" content="noindex,nofollow">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Central do Garimpo</title>
   <link rel="stylesheet" href="admin.css">
 </head>
 <body>
-  <div id="app">
-    <section id="loginView" class="view">
-      <div class="login-shell">
-        <div class="brand-mark">🔎</div>
-        <p class="eyebrow">GARIMPO DO GIVA</p>
-        <h1>Central do Garimpo</h1>
-        <p class="muted">Área administrativa protegida.</p>
+  <header class="topbar">
+    <div class="brand">
+        <div class="brand-icon">🔎</div>
+        <div>
+            <strong>GARIMPO DO GIVA</strong>
+            <span>Central do Garimpo</span>
+        </div>
+    </div>
 
-        <form id="loginForm" class="card login-card">
-          <label for="email">E-mail</label>
-          <input id="email" type="email" autocomplete="username" value="garimpodogiva@gmail.com" required>
+    <div class="top-actions">
+        <a href="../index.html" target="_blank" class="btn btn-ghost">
+            Ver vitrine
+        </a>
+    </div>
+ </header>
 
-          <label for="password">Senha</label>
-          <div class="password-wrap">
-            <input id="password" type="password" autocomplete="current-password" required>
-            <button type="button" class="eye-btn" id="togglePassword" aria-label="Mostrar senha">👁</button>
-          </div>
-
-          <button class="btn btn-primary btn-wide" type="submit">Entrar na Central</button>
-          <p id="loginMessage" class="message" role="alert"></p>
-        </form>
-
-        <p class="security-note">🔐 Login por Supabase Auth + banco protegido por RLS.</p>
+  <main class="container">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">CENTRAL DO GARIMPO</p>
+        <h1>Controle seus achados.</h1>
+        <p class="hero-copy">Cadastre, avalie, aprove e organize os produtos antes de colocá-los na vitrine.</p>
+      </div>
+      <div class="hero-search">
+        <label for="busca">Buscar produto</label>
+        <input id="busca" type="search" placeholder="Nome, categoria ou loja...">
       </div>
     </section>
 
-    <section id="adminView" class="view hidden">
-      <header class="topbar">
-        <div>
-          <p class="eyebrow">GARIMPO DO GIVA</p>
-          <h1>Central do Garimpo</h1>
-        </div>
-        <div class="top-actions">
-          <span id="userEmail" class="user-chip"></span>
-          <button id="logoutBtn" class="btn btn-secondary">Sair</button>
-        </div>
-      </header>
-
-      <main class="container">
-        <div id="globalMessage" class="message global-message" role="status"></div>
-
-        <section class="stats-grid">
-          <div class="stat-card"><span>Total</span><strong id="statTotal">0</strong></div>
-          <div class="stat-card"><span>Publicados</span><strong id="statPublicados">0</strong></div>
-          <div class="stat-card"><span>Reservas</span><strong id="statReservas">0</strong></div>
-          <div class="stat-card"><span>Score médio</span><strong id="statScore">0</strong></div>
-        </section>
-
-        <div class="toolbar">
-          <div>
-            <h2>Produtos</h2>
-            <p class="muted">Os produtos desta Central ficam salvos no banco real do Garimpo.</p>
-          </div>
-          <div class="toolbar-actions">
-            <button id="refreshBtn" class="btn btn-secondary">↻ Atualizar</button>
-            <button id="newProductBtn" class="btn btn-primary">＋ Novo produto</button>
-          </div>
-        </div>
-
-        <section id="productFormSection" class="card form-card hidden">
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">CADASTRO</p>
-              <h2 id="formTitle">Novo produto</h2>
-            </div>
-            <button id="closeFormBtn" class="icon-btn" type="button" aria-label="Fechar">×</button>
-          </div>
-
-          <form id="productForm">
-            <input id="productId" type="hidden">
-
-            <div class="form-grid">
-              <div class="field field-full">
-                <label for="nome">Nome do produto *</label>
-                <input id="nome" required maxlength="300">
-              </div>
-
-              <div class="field">
-                <label for="categoria">Categoria</label>
-                <input id="categoria" maxlength="100" placeholder="Ex.: Cozinha">
-              </div>
-
-              <div class="field">
-                <label for="preco">Preço (R$)</label>
-                <input id="preco" type="number" step="0.01" min="0" placeholder="19,90">
-              </div>
-
-              <div class="field">
-                <label for="comissao">Comissão (%)</label>
-                <input id="comissao" type="number" step="0.01" min="0" placeholder="15">
-              </div>
-
-              <div class="field">
-                <label for="nota">Nota</label>
-                <input id="nota" type="number" step="0.1" min="0" max="5" placeholder="4.8">
-              </div>
-
-              <div class="field">
-                <label for="avaliacoes">Avaliações</label>
-                <input id="avaliacoes" maxlength="80" placeholder="17,3 mil">
-              </div>
-
-              <div class="field">
-                <label for="vendidos">Vendas / demanda</label>
-                <input id="vendidos" maxlength="80" placeholder="50 mil+">
-              </div>
-
-              <div class="field">
-                <label for="loja">Loja</label>
-                <input id="loja" maxlength="150">
-              </div>
-
-              <div class="field">
-                <label for="status">Status</label>
-                <select id="status">
-                  <option value="reserva">Reserva</option>
-                  <option value="aprovado">Aprovado</option>
-                  <option value="publicado">Publicado</option>
-                  <option value="inativo">Inativo</option>
-                </select>
-              </div>
-
-              <div class="field field-full">
-                <label for="imagem">URL da imagem</label>
-                <input id="imagem" type="url" maxlength="1000" placeholder="https://...">
-              </div>
-
-              <div class="field field-full">
-                <label for="link">Link de afiliado *</label>
-                <input id="link" type="url" maxlength="1000" placeholder="https://s.shopee.com.br/..." required>
-              </div>
-
-              <div class="field field-full">
-                <label for="observacao">Observação interna</label>
-                <textarea id="observacao" rows="3" maxlength="2000" placeholder="Anotações que só aparecem na Central."></textarea>
-              </div>
-            </div>
-
-            <div class="score-panel">
-              <div>
-                <span class="score-label">Score Garimpo</span>
-                <strong id="scorePreview">0/100</strong>
-              </div>
-              <div class="score-bar"><span id="scoreBar"></span></div>
-              <small>Score automático preliminar: vendas, nota, comissão, avaliações e faixa de preço.</small>
-            </div>
-
-            <div class="form-actions">
-              <button id="cancelFormBtn" class="btn btn-secondary" type="button">Cancelar</button>
-              <button class="btn btn-primary" type="submit"><span id="saveBtnText">Salvar produto</span></button>
-            </div>
-            <p id="formMessage" class="message" role="alert"></p>
-          </form>
-        </section>
-
-        <section class="card list-card">
-          <div id="loading" class="empty-state">Carregando produtos...</div>
-          <div id="emptyState" class="empty-state hidden">
-            <div class="empty-icon">🛒</div>
-            <h3>Nenhum produto cadastrado ainda</h3>
-            <p>Este é o banco real. Vamos cadastrar o primeiro produto pela Central.</p>
-          </div>
-          <div id="productList" class="product-list"></div>
-        </section>
-      </main>
+    <section class="stats" aria-label="Resumo">
+      <article><span>Total</span><strong id="statTotal">0</strong></article>
+      <article><span>Aprovados</span><strong id="statAprovados">0</strong></article>
+      <article><span>Publicados</span><strong id="statPublicados">0</strong></article>
+      <article><span>Score médio</span><strong id="statScore">0</strong></article>
     </section>
-  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js"></script>
+    <div class="layout">
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">CATÁLOGO</p>
+            <h2>Produtos do Garimpo</h2>
+          </div>
+          <button id="btnNovo" class="btn btn-primary">+ Novo produto</button>
+        </div>
+        <div id="lista" class="product-list"></div>
+      </section>
+
+      <aside id="editor" class="panel editor">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">EDIÇÃO</p>
+            <h2 id="editorTitle">Novo produto</h2>
+          </div>
+          <button id="btnFechar" class="icon-btn" title="Fechar">×</button>
+        </div>
+
+        <form id="formProduto">
+          <input type="hidden" id="produtoId">
+
+          <label>Nome do produto
+            <input id="nome" required>
+          </label>
+
+          <div class="two">
+            <label>Categoria
+              <input id="categoria" placeholder="Ex.: Cozinha e organização">
+            </label>
+            <label>Loja
+              <input id="loja">
+            </label>
+          </div>
+
+          <div class="three">
+            <label>Preço (R$)
+              <input id="preco" type="number" step="0.01" min="0">
+            </label>
+            <label>Comissão (%)
+              <input id="comissao" type="number" step="0.01" min="0">
+            </label>
+            <label>Nota
+              <input id="nota" type="number" step="0.1" min="0" max="5">
+            </label>
+          </div>
+
+          <div class="two">
+            <label>Avaliações
+              <input id="avaliacoes" placeholder="Ex.: 29,1 mil">
+            </label>
+            <label>Vendidos
+              <input id="vendidos" placeholder="Ex.: 50 mil+">
+            </label>
+          </div>
+
+          <label>Imagem do produto
+            <input id="imagem" type="url" placeholder="https://...">
+          </label>
+
+          <label>Link de afiliado
+            <input id="link" type="url" placeholder="https://s.shopee.com.br/..." required>
+          </label>
+
+          <label>Status
+            <select id="status">
+              <option value="reserva">Reserva</option>
+              <option value="aprovado">Aprovado</option>
+              <option value="publicado">Publicado</option>
+              <option value="inativo">Inativo</option>
+            </select>
+          </label>
+
+          <label>Observação interna
+            <textarea id="observacao" rows="3" placeholder="Notas que só aparecem na Central."></textarea>
+          </label>
+
+          <div class="score-box">
+            <div>
+              <span>Score Garimpo</span>
+              <strong id="scorePreview">0/100</strong>
+            </div>
+            <small>Calculado automaticamente com os dados do produto.</small>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" id="btnExcluir" class="btn btn-danger">Excluir</button>
+            <div>
+              <button type="button" id="btnCancelar" class="btn btn-ghost">Cancelar</button>
+              <button type="submit" class="btn btn-primary">Salvar produto</button>
+            </div>
+          </div>
+        </form>
+      </aside>
+    </div>
+  </main>
+
+  <footer>Garimpo do Giva · Dados somente neste navegador</footer>
   <script src="admin.js"></script>
 </body>
 </html>
