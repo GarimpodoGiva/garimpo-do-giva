@@ -1,6 +1,6 @@
 const STORAGE_KEY = "garimpo_central_vitrine_lab_v1";
 
-const ADMIN_EMAIL = "garimpodogiva@gmail.com";
+const ADMIN_EMAIL = "";
 
 let supabaseClient = null;
 let produtos = [];
