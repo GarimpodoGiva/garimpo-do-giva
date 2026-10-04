@@ -68,6 +68,51 @@
       margin-top:12px;
     }
   </style>
+
+<style id="password-eye-fix">
+.password-wrap {
+  position: relative !important;
+  width: 100% !important;
+  display: block !important;
+}
+
+.password-wrap input {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding-right: 54px !important;
+}
+
+.eye-btn {
+  position: absolute !important;
+  top: 50% !important;
+  right: 8px !important;
+  transform: translateY(-50%) !important;
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: #111 !important;
+  cursor: pointer !important;
+  z-index: 9999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 20px !important;
+  line-height: 1 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.eye-btn:hover {
+  background: rgba(0,0,0,.06) !important;
+}
+</style>
+
 </head>
 
 <body>
@@ -91,7 +136,7 @@
             id="email"
             type="email"
             autocomplete="username"
-            value="garimpodogiva@gmail.com"
+            value=""
             required
           >
         </label>
