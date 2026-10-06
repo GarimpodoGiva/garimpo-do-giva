@@ -48,6 +48,22 @@ const seed = [
 const $ = id => document.getElementById(id);
 const money = v => Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 
+function parseBrazilianNumber(value){
+  const text = String(value ?? "").trim().replace(/[^0-9,.-]/g, "");
+  if(!text) return 0;
+  if(text.includes(",")){
+    return Number(text.replace(/\./g, "").replace(",", ".")) || 0;
+  }
+  return Number(text) || 0;
+}
+
+function formatPriceInput(value){
+  if(value === null || value === undefined || value === "") return "";
+  const number = parseBrazilianNumber(value);
+  if(!Number.isFinite(number)) return "";
+  return number.toLocaleString("pt-BR", {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
 document.addEventListener("DOMContentLoaded", init);
 
 async function init(){
@@ -68,6 +84,14 @@ async function init(){
       detectSessionInUrl:false
     }
   });
+
+  const precoInput = $("preco");
+  if(precoInput){
+    precoInput.type = "text";
+    precoInput.inputMode = "decimal";
+    precoInput.autocomplete = "off";
+    precoInput.placeholder = "Ex.: 3.586,07";
+  }
 
   bindEvents();
 
@@ -120,6 +144,11 @@ if (togglePassword && passwordInput) {
 
   ["preco","comissao","nota","vendidos","avaliacoes"]
     .forEach(id=>$(id).addEventListener("input",updateScore));
+
+  $("preco").addEventListener("blur", ()=>{
+    if($("preco").value.trim() !== "")
+      $("preco").value = formatPriceInput($("preco").value);
+  });
 
   $("status").addEventListener("change",updateScore);
   $("formProduto").addEventListener("submit", saveProduct);
@@ -222,7 +251,7 @@ async function enterAdmin(user){
 
   clearLoginMessage();
 
-  produtos = load();
+  produtos = await loadFromSupabase();
 
   render();
 }
@@ -236,8 +265,30 @@ function showLogin(){
   $("password").focus();
 }
 
-function load(){
+async function loadFromSupabase(){
+  try{
+    const {data, error} = await supabaseClient
+      .from("garimpo_produtos")
+      .select("*")
+      .order("id", {ascending:true});
 
+    if(error) throw error;
+
+    const produtosSupabase = (data || []).map(mapFromSupabase);
+
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(produtosSupabase)
+    );
+
+    return produtosSupabase;
+  }catch(error){
+    console.error("Falha ao carregar produtos do Supabase:", error);
+    return loadLocalBackup();
+  }
+}
+
+function loadLocalBackup(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
 
@@ -250,13 +301,81 @@ function load(){
   }
 }
 
-function persist(){
+function mapFromSupabase(row){
+  return {
+    id: String(row.id),
+    nome: row.nome || "",
+    categoria: row.categoria || "",
+    loja: row.loja || "",
+    preco: row.preco ?? 0,
+    comissao: row.comissao ?? row.comissao_percentual ?? 0,
+    nota: row.nota ?? row.avaliacao ?? 0,
+    avaliacoes: row.avaliacoes || "",
+    vendidos: row.vendidos || row.vendas_portal || "",
+    imagem: row.imagem || "",
+    link: row.link || "",
+    status: row.status || "reserva",
+    observacao: row.observacao || "",
+    preco_maximo: row.preco_maximo ?? row.preco ?? 0,
+    vendas_portal: row.vendas_portal || "",
+    vendas_anuncio: row.vendas_anuncio || "",
+    avaliacao: row.avaliacao ?? row.nota ?? 0,
+    comissao_percentual: row.comissao_percentual ?? row.comissao ?? 0,
+    score_garimpo: row.score_garimpo ?? 0,
+    verificado_em: row.verificado_em || ""
+  };
+}
 
+async function saveToSupabase(p){
+  const payload = {
+    id: String(p.id),
+    nome: p.nome,
+    categoria: p.categoria,
+    preco: Number(p.preco || 0),
+    preco_maximo: Number(p.preco_maximo ?? p.preco ?? 0),
+    comissao_percentual: Number(p.comissao_percentual ?? p.comissao ?? 0),
+    comissao: Number(p.comissao || 0),
+    vendas_portal: p.vendas_portal || p.vendidos || "",
+    vendas_anuncio: p.vendas_anuncio || "",
+    avaliacao: Number(p.avaliacao ?? p.nota ?? 0),
+    avaliacoes: p.avaliacoes || "",
+    vendidos: p.vendidos || p.vendas_portal || "",
+    loja: p.loja || "",
+    imagem: p.imagem || "",
+    link: p.link || "",
+    score_garimpo: calcScore(p),
+    status: p.status || "reserva",
+    observacao: p.observacao || "",
+    verificado_em: p.verificado_em || "",
+    nota: Number(p.nota ?? p.avaliacao ?? 0),
+    updated_at: new Date().toISOString()
+  };
+
+  const {data, error} = await supabaseClient
+    .from("garimpo_produtos")
+    .upsert(payload, {onConflict:"id"})
+    .select("*")
+    .single();
+
+  if(error) throw error;
+
+  return mapFromSupabase(data);
+}
+
+async function deleteFromSupabase(id){
+  const {error} = await supabaseClient
+    .from("garimpo_produtos")
+    .delete()
+    .eq("id", String(id));
+
+  if(error) throw error;
+}
+
+function persistLocalBackup(){
   localStorage.setItem(
     STORAGE_KEY,
     JSON.stringify(produtos)
   );
-
 }
 
 function calcScore(p){
@@ -419,7 +538,7 @@ function openEditor(p=null){
   $("nome").value=p?.nome||"";
   $("categoria").value=p?.categoria||"";
   $("loja").value=p?.loja||"";
-  $("preco").value=p?.preco??"";
+  $("preco").value=p?.preco === undefined || p?.preco === null ? "" : formatPriceInput(p.preco);
   $("comissao").value=p?.comissao??"";
   $("nota").value=p?.nota??"";
   $("avaliacoes").value=p?.avaliacoes||"";
@@ -473,7 +592,7 @@ function formData(){
 
     loja:$("loja").value.trim(),
 
-    preco:Number($("preco").value||0),
+    preco:parseBrazilianNumber($("preco").value),
 
     comissao:Number($("comissao").value||0),
 
@@ -501,60 +620,87 @@ function updateScore(){
 
 }
 
-function saveProduct(event){
-
+async function saveProduct(event){
   event.preventDefault();
 
   const p=formData();
 
   if(!p.nome || !p.link){
-
     alert(
       "Preencha pelo menos o nome e o link de afiliado."
     );
-
     return;
   }
 
-  const idx =
-    produtos.findIndex(x=>x.id===p.id);
+  const submitButton = $("formProduto").querySelector('button[type="submit"]');
+  if(submitButton){
+    submitButton.disabled = true;
+    submitButton.textContent = "Salvando...";
+  }
 
-  if(idx>=0)
-    produtos[idx]=p;
-  else
-    produtos.unshift(p);
+  try{
+    const salvo = await saveToSupabase(p);
 
-  persist();
+    const idx =
+      produtos.findIndex(x=>String(x.id)===String(salvo.id));
 
-  render();
+    if(idx>=0)
+      produtos[idx]=salvo;
+    else
+      produtos.unshift(salvo);
 
-  openEditor(p);
+    persistLocalBackup();
 
-  alert("Produto salvo na Central.");
+    render();
+    openEditor(salvo);
+
+    alert("Produto salvo no Supabase.");
+  }catch(error){
+    console.error("Erro ao salvar produto:", error);
+
+    alert(
+      "Não foi possível salvar no Supabase. O produto não foi alterado."
+    );
+  }finally{
+    if(submitButton){
+      submitButton.disabled = false;
+      submitButton.textContent = "Salvar produto";
+    }
+  }
 }
 
-function deleteCurrentProduct(){
+async function deleteCurrentProduct(){
 
   if(!editId)
     return;
 
   const p =
-    produtos.find(x=>x.id===editId);
+    produtos.find(x=>String(x.id)===String(editId));
 
   if(!p)
     return;
 
   if(confirm(`Excluir "${p.nome}"?`)){
 
-    produtos =
-      produtos.filter(x=>x.id!==editId);
+    try{
+      await deleteFromSupabase(editId);
 
-    persist();
+      produtos =
+        produtos.filter(x=>String(x.id)!==String(editId));
 
-    closeEditor();
+      persistLocalBackup();
 
-    render();
+      closeEditor();
+      render();
 
+      alert("Produto excluído do Supabase.");
+    }catch(error){
+      console.error("Erro ao excluir produto:", error);
+
+      alert(
+        "Não foi possível excluir o produto do Supabase. Nada foi alterado."
+      );
+    }
   }
 }
 
